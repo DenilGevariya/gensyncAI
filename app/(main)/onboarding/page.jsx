@@ -7,13 +7,13 @@ export default async function OnboardingPage() {
   // Check if user is already onboarded
   const { isOnboarded } = await getUserOnboardingStatus();
 
-  if (isOnboarded) {
-    redirect("/dashboard");
-  }
+  // if (isOnboarded) {
+  //   redirect("/dashboard");
+  // }
 
   return (
     <main>
-      <OnboardingForm industries={industries} />
+      <OnboardingForm industries={industries} isFirstTime={!isOnboarded} />
     </main>
   );
 }
