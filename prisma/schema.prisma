@@ -27,6 +27,7 @@ model User {
   assessments   Assessment[]
   resume        Resume?
   coverLetter   CoverLetter[]
+  roadmaps      Roadmap[]
 }
 
 model Assessment {
@@ -97,6 +98,21 @@ model IndustryInsight {
 
   @@index([industry])
 }
+
+model Roadmap {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  field       String   // e.g., "Frontend Development"
+  roadmapData Json     // Gemini JSON response for ReactFlow nodes/edges
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
 
 enum DemandLevel{
   HIGH

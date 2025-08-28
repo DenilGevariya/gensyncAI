@@ -7,7 +7,7 @@ import CoverLetterPreview from "../_components/cover-letter-preview";
 export default async function EditCoverLetterPage({ params }) {
   const { id } = await params;
   const coverLetter = await getCoverLetter(id);
-
+  
   return (
     <div className="container mx-auto py-6">
       <div className="flex flex-col space-y-2">
