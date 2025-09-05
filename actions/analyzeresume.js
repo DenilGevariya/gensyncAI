@@ -326,3 +326,261 @@ export async function getUserResumeAnalyses() {
 
   return latestAnalysis; // Return single object instead of array
 }
+
+// "use server";
+// import { db } from "@/lib/prisma";
+// import { auth } from "@clerk/nextjs/server";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { writeFile, mkdir } from 'fs/promises';
+// import { join } from 'path';
+// import { existsSync } from 'fs';
+
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const model = genAI.getGenerativeModel({
+//   model: "gemini-1.5-flash",
+// });
+
+// export async function analyzeResume(formData) {
+//   try {
+//     const { userId } = await auth();
+//     if (!userId) {
+//       return { success: false, error: "Unauthorized access" };
+//     }
+
+//     const user = await db.user.findUnique({
+//       where: { clerkUserId: userId },
+//     });
+//     if (!user) {
+//       return { success: false, error: "User not found" };
+//     }
+
+//     const companyName = formData.get('companyName');
+//     const jobTitle = formData.get('jobTitle');
+//     const jobDescription = formData.get('jobDescription');
+//     const resumeFile = formData.get('resumeFile');
+
+//     if (!resumeFile || resumeFile.size === 0) {
+//       return { success: false, error: "Please upload a resume file" };
+//     }
+
+//     // Validate environment variables
+//     if (!process.env.GEMINI_API_KEY) {
+//       return { success: false, error: "AI service configuration missing" };
+//     }
+
+//     // Save file
+//     const bytes = await resumeFile.arrayBuffer();
+//     const buffer = Buffer.from(bytes);
+    
+//     const timestamp = Date.now();
+//     const filename = `resume_${userId}_${timestamp}.pdf`;
+    
+//     // Use /tmp directory in serverless environment
+//     const uploadsDir = process.env.NODE_ENV === 'production' 
+//       ? '/tmp' 
+//       : join(process.cwd(), 'public', 'uploads');
+    
+//     if (!existsSync(uploadsDir) && process.env.NODE_ENV !== 'production') {
+//       await mkdir(uploadsDir, { recursive: true });
+//     }
+    
+//     const filepath = join(uploadsDir, filename);
+//     await writeFile(filepath, buffer);
+
+//     // Extract text with better error handling
+//     const { text: resumeText, method } = await extractTextFromPDF(buffer);
+
+//     // Generate analysis
+//     const analysisResult = await generateUnifiedAnalysis(
+//       resumeText,
+//       jobDescription,
+//       jobTitle,
+//       companyName,
+//       method
+//     );
+
+//     if (!analysisResult) {
+//       return { success: false, error: "Analysis generation failed" };
+//     }
+
+//     // Save to database
+//     const resumeAnalysis = await db.resumeAnalysis.create({
+//       data: {
+//         userId: user.id,
+//         companyName,
+//         jobTitle,
+//         jobDescription,
+//         resumeUrl: process.env.NODE_ENV === 'production' 
+//           ? `/tmp/${filename}` 
+//           : `/uploads/${filename}`,
+//         atsScore: analysisResult.atsScore,
+//         analysis: analysisResult,
+//       },
+//     });
+
+//     return { success: true, id: resumeAnalysis.id };
+
+//   } catch (error) {
+//     console.error("Resume analysis error:", error);
+//     return { 
+//       success: false, 
+//       error: "Analysis failed. Please try again." 
+//     };
+//   }
+// }
+
+// async function extractTextFromPDF(buffer) {
+//   let resumeText = "";
+//   let method = "failed";
+
+//   try {
+//     // Try pdf-parse first (more reliable in serverless)
+//     const pdf = (await import('pdf-parse')).default;
+//     const pdfData = await pdf(buffer);
+//     resumeText = pdfData.text?.trim() || "";
+//     method = "pdf-parse";
+//   } catch (error) {
+//     console.error("PDF extraction failed:", error);
+//     // Return empty text if extraction fails
+//     resumeText = "";
+//     method = "failed";
+//   }
+
+//   return { text: resumeText, method };
+// }
+
+// async function generateUnifiedAnalysis(resumeText, jobDescription, jobTitle, companyName, extractionMethod) {
+//   try {
+//     const prompt = `
+// You are an expert ATS resume analyzer. Analyze the provided resume content against the job requirements and provide comprehensive insights.
+
+// RESUME CONTENT:
+// ${resumeText}
+
+// EXTRACTION METHOD: ${extractionMethod}
+
+// JOB DETAILS:
+// Company: ${companyName}
+// Position: ${jobTitle}
+// Job Description: ${jobDescription.substring(0, 4000)}
+
+// INSTRUCTIONS:
+// 1.  perform detailed analysis comparing resume against job requirements
+// 2. If resume content is limited or poor quality, focus on job requirements analysis and provide optimization guidance
+// 3. Always extract keywords from the job description for missing keywords section
+// 4. Generate realistic and helpful recommendations regardless of resume text quality
+// 5. Provide actionable insights that help improve the application
+
+// Provide analysis in this exact JSON format:
+
+// {
+//   "summary": "Write a 2-3 sentence analysis. If resume text is available, compare it to job requirements. If not available, focus on job requirements and what an ideal resume should contain for this role.",
+//   "atsScore": [Provide realistic score: 60-95 if good resume content available, 45-65 if limited content, based on apparent fit],
+//   "strengths": [
+//     "List actual strengths found in resume related to the job",
+//     "List general strengths of applying to this role",
+//     "Include 3-4 relevant points based on available information"
+//   ],
+//   "weaknesses": [
+//     "If resume available: Specific gaps between resume and job requirements", 
+//     "If limited content: Areas that need attention for this role",
+//     "Include 2-3 actionable areas for improvement"
+//   ],
+//   "keywordMatches": {
+//     "matched": [
+//       "If resume available: List keywords found in both resume and job description",
+//     ],
+//     "missing": [
+//       "ALWAYS extract 6-10 key technical skills and requirements from the job description",
+//       "Include programming languages, frameworks, tools, methodologies, certifications",
+//       "Add soft skills and experience levels mentioned in job posting"
+//     ]
+//   },
+//   "suggestions": [
+//     "Provide 5-6 specific, actionable recommendations",
+//     "If resume available: Specific improvements based on gaps found",
+//     "If resume limited: General optimization advice for this role",
+//     "Include advice on keywords, formatting, content, achievements",
+//     "Make suggestions specific to the ${jobTitle} role and ${companyName}"
+//   ],
+//   "skillsAnalysis": {
+//     "present": [
+//       "If resume available: List 6-10 technical and professional skills found in resume",
+//     ],
+//     "recommended": [
+//       "ALWAYS extract 8-12 key skills from the job description",
+//       "Include technical requirements, tools, frameworks, methodologies",
+//       "Add certifications and qualifications mentioned in job posting"
+//     ]
+//   }
+// }
+
+// IMPORTANT: 
+// - Always populate "missing" keywords and "recommended" skills from the job description regardless of resume quality
+// - Make the analysis helpful and actionable
+// - Be realistic about scores and assessments
+// - Focus on what will help the candidate succeed
+// - Return ONLY the JSON object, no other text
+
+// JSON Response:`;
+// ;
+
+//     const result = await model.generateContent(prompt);
+//     const text = result.response.text();
+    
+//     let cleanedText = text.replace(/``````/g, '').trim();
+//     const jsonStart = cleanedText.indexOf('{');
+//     const jsonEnd = cleanedText.lastIndexOf('}') + 1;
+    
+//     if (jsonStart !== -1 && jsonEnd !== -1) {
+//       cleanedText = cleanedText.substring(jsonStart, jsonEnd);
+//     }
+
+//     const parsed = JSON.parse(cleanedText);
+    
+//     return {
+//       summary: parsed.summary || "Analysis completed",
+//       atsScore: Math.max(0, Math.min(100, parsed.atsScore || 50)),
+//       strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],
+//       weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],
+//       keywordMatches: {
+//         matched: Array.isArray(parsed.keywordMatches?.matched) ? parsed.keywordMatches.matched : [],
+//         missing: Array.isArray(parsed.keywordMatches?.missing) ? parsed.keywordMatches.missing : []
+//       },
+//       suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+//       skillsAnalysis: {
+//         present: Array.isArray(parsed.skillsAnalysis?.present) ? parsed.skillsAnalysis.present : [],
+//         recommended: Array.isArray(parsed.skillsAnalysis?.recommended) ? parsed.skillsAnalysis.recommended : []
+//       }
+//     };
+//   } catch (error) {
+//     console.error("AI analysis failed:", error);
+//     return null;
+//   }
+// }
+
+// export async function getUserResumeAnalyses() {
+//   try {
+//     const { userId } = await auth();
+//     if (!userId) {
+//       return null;
+//     }
+
+//     const user = await db.user.findUnique({
+//       where: { clerkUserId: userId },
+//     });
+//     if (!user) {
+//       return null;
+//     }
+
+//     const latestAnalysis = await db.resumeAnalysis.findFirst({
+//       where: { userId: user.id },
+//       orderBy: { createdAt: 'desc' },
+//     });
+
+//     return latestAnalysis;
+//   } catch (error) {
+//     console.error("Error fetching analysis:", error);
+//     return null;
+//   }
+// }
