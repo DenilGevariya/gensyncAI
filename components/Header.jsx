@@ -7,6 +7,7 @@ import {
   GraduationCap,
   ChevronDown,
   StarsIcon,
+  Scan,
 } from "lucide-react";
 import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
@@ -27,11 +28,11 @@ export default async function Header() {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/">
           <Image
-            src={"/logo5.png"}
+            src={"/logoff.png"}
             alt="Sensai Logo"
-            width={200}
+            width={300}
             height={100}
-            className="h-32 py-1 w-auto object-contain"
+            className="h-16 py-2 w-auto object-contain"
           />
         </Link>
 
@@ -50,7 +51,7 @@ export default async function Header() {
                 <LayoutDashboard className="h-4 w-4" />
               </Button>
             </Link>
-            <RoadmapDialouge/>
+            <RoadmapDialouge />
             {/* Growth Tools Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -80,6 +81,12 @@ export default async function Header() {
                   <Link href="/interview" className="flex items-center gap-2">
                     <GraduationCap className="h-4 w-4" />
                     Interview Prep
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/resume-analyzer/upload" className="flex items-center gap-2">
+                    <Scan className="h-4 w-4" />
+                    Anylyze Resume
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>

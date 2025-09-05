@@ -70,3 +70,35 @@ export const coverLetterSchema = z.object({
   jobTitle: z.string().min(1, "Job title is required"),
   jobDescription: z.string().min(1, "Job description is required"),
 });
+
+// Add this to your existing schemas
+export const resumeAnalysisSchema = z.object({
+  companyName: z.string().min(1, "Company name is required"),
+  jobTitle: z.string().min(1, "Job title is required"), 
+  jobDescription: z.string().min(1, "Job description is required"),
+  resumeFile: z.any().refine(
+    (file) => file instanceof File,
+    "Please upload a resume file"
+  ).refine(
+    (file) => file?.size <= 5 * 1024 * 1024, // 5MB
+    "File size must be less than 5MB"
+  ).refine(
+    (file) => {
+      const validTypes = [
+        "application/pdf",
+        "application/x-pdf",
+        "application/acrobat",
+        "applications/vnd.pdf",
+        "text/pdf",
+        "text/x-pdf"
+      ];
+      const fileName = file?.name?.toLowerCase();
+      const hasValidExtension = fileName?.endsWith('.pdf');
+      const hasValidMimeType = validTypes.includes(file?.type);
+      
+      return hasValidExtension || hasValidMimeType;
+    },
+    "Only PDF files are allowed"
+  ),
+});
+

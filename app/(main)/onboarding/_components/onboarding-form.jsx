@@ -193,17 +193,6 @@ const OnboardingForm = ({ industries, isFirstTime }) => {
                 <p className="text-sm text-red-500">{errors.bio.message}</p>
               )}
             </div>
-
-            {/* <Button type="submit" className="w-full" disabled={updateLoading}>
-              {updateLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Complete Profile"
-              )}
-            </Button> */}
             <Button type="submit" className="w-full" disabled={updateLoading}>
               {updateLoading ? (
                 <>

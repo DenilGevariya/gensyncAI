@@ -5,7 +5,7 @@ export const testimonial = [
     author: "Dhruvi Paghdal",
     image: "https://randomuser.me/api/portraits/women/75.jpg",
     role: "Software Engineer",
-    company: "Tech Giant Co.",
+    company: "Student",
   },
   {
     quote:
@@ -13,7 +13,7 @@ export const testimonial = [
     author: "Denil Gevariya",
     image: "https://randomuser.me/api/portraits/men/75.jpg",
     role: "Product Manager",
-    company: "StartUp Inc.",
+    company: "Student",
   },
   {
     quote:
@@ -21,6 +21,6 @@ export const testimonial = [
     author: "Krushna Kachadiya",
     image: "https://randomuser.me/api/portraits/men/74.jpg",
     role: "Marketing Director",
-    company: "Global Corp",
+    company: "Student",
   },
 ];
